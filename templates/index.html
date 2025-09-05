@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Arbeitsorte – Wochenansicht</title>
+  <style>
+    :root { --bg:#0f172a; --card:#111827; --muted:#9ca3af; --text:#e5e7eb; --accent:#22c55e; --border:#374151; }
+    *{ box-sizing: border-box; }
+    body{ margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; background: linear-gradient(180deg, #0b1022, #0f172a); color: var(--text); }
+    .container{ max-width: 1000px; margin: 32px auto; padding: 0 16px; }
+    .header{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .title{ font-size: clamp(20px, 3vw, 28px); font-weight:700; letter-spacing:0.2px;}
+    .muted{ color: var(--muted); }
+    .card{ background: linear-gradient(180deg, #0e152b, #0d1326); border:1px solid var(--border); border-radius:16px; padding:16px; box-shadow: 0 8px 30px rgba(0,0,0,.35); }
+    .grid{ display:grid; grid-template-columns: 1fr; gap:10px; }
+    @media (min-width:700px){ .grid{ grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width:980px){ .grid{ grid-template-columns: repeat(3, 1fr); } }
+
+    .row{ display:flex; align-items:center; gap:12px; }
+    .row > * { flex: 1; }
+    .day-card{ border:1px solid var(--border); border-radius:12px; padding:12px; background: rgba(255,255,255,0.02); }
+    .day-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+    .weekday{ font-weight:600; }
+    .date{ font-variant-numeric: tabular-nums; color: var(--muted); }
+
+    label{ font-size:14px; color: var(--muted); }
+    input[type="text"], input[type="number"], select{
+      width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border);
+      background:#0b1328; color:var(--text); outline:none;
+    }
+    input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .controls{ display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap; }
+    .controls .field{ min-width:120px; }
+    .btn{ cursor:pointer; border:none; border-radius:10px; padding:10px 14px; font-weight:600; }
+    .btn-accent{ background: var(--accent); color:#052e16; }
+    .btn-ghost{ background: transparent; color: var(--text); border:1px solid var(--border); }
+    .btn:focus{ outline:2px solid #22c55e55; }
+    .nav{ display:flex; gap:8px; }
+    .hint{ font-size:13px; color:var(--muted); margin-top:6px;}
+    .footer{ margin-top:14px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title">Arbeitsorte – Wochenansicht</div>
+      <div class="muted">Jahr {{year}}, KW {{'%02d' % week}}</div>
+    </div>
+
+    <!-- Woche wählen (GET) -->
+    <form method="get" class="card" style="margin-bottom:14px;">
+      <div class="controls">
+        <div class="field">
+          <label for="year">Jahr</label>
+          <input id="year" name="year" type="number" min="2000" step="1" value="{{year}}" />
+        </div>
+        <div class="field">
+          <label for="week">Kalenderwoche (1–{{last_week}})</label>
+          <input id="week" name="week" type="number" min="1" max="{{last_week}}" value="{{week}}" />
+        </div>
+        <div class="nav">
+          <a class="btn btn-ghost" href="?year={{prev_year}}&week={{prev_week}}">‹ Vorherige Woche</a>
+          <a class="btn btn-ghost" href="?year={{next_year}}&week={{next_week}}">Nächste Woche ›</a>
+        </div>
+        <div style="flex:1"></div>
+        <button class="btn btn-accent" type="submit">Ansicht aktualisieren</button>
+      </div>
+      <div class="hint">Hinweis: Ungültige Wochenzahlen werden automatisch auf den gültigen Bereich korrigiert.</div>
+    </form>
+
+    <!-- Erfassung + Download (POST) -->
+    <form method="post" action="/download" class="card">
+      <input type="hidden" name="year" value="{{year}}" />
+      <input type="hidden" name="week" value="{{week}}" />
+
+      <div class="row" style="margin-bottom:12px;">
+        <div class="field" style="max-width:360px;">
+          <label for="name">Ihr Name</label>
+          <input id="name" name="name" type="text" placeholder="Vorname Nachname" value="{{name}}" required />
+        </div>
+      </div>
+
+      <div class="grid">
+        {% for d, weekday in days %}
+        <div class="day-card">
+          <div class="day-head">
+            <div class="weekday">{{weekday}}</div>
+            <div class="date">{{ d.strftime('%d.%m.%Y') }}</div>
+          </div>
+          <label for="loc_{{ d.isoformat() }}">Standort</label>
+          <select id="loc_{{ d.isoformat() }}" name="loc_{{ d.isoformat() }}">
+            <option value="" {% if selections.get('loc_' + d.isoformat(), '') == '' %}selected{% endif %}>– wählen –</option>
+            {% for loc in locations %}
+            <option value="{{loc}}" {% if selections.get('loc_' + d.isoformat(), '') == loc %}selected{% endif %}>{{loc}}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="footer">
+        <div class="muted">Woche {{'%02d' % week}} von {{year}} – wählen Sie pro Tag den Standort aus.</div>
+        <button class="btn btn-accent" type="submit">Als Excel herunterladen</button>
+      </div>
+    </form>
+  </div>
+</body>
+</html>
