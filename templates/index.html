@@ -39,13 +39,18 @@
     .nav{ display:flex; gap:8px; }
     .hint{ font-size:13px; color:var(--muted); margin-top:6px;}
     .footer{ margin-top:14px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;}
+    .header-right{ display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
+    .header-right a{ color:#e5e7eb; text-decoration:none; border-bottom:1px dotted #e5e7eb33; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
       <div class="title">Arbeitsorte – Wochenansicht</div>
-      <div class="muted">Jahr {{year}}, KW {{'%02d' % week}}</div>
+      <div class="header-right">
+        <div class="muted">Jahr {{year}}, KW {{'%02d' % week}}</div>
+        <div class="muted">Angemeldet als {{current_username}} · <a href="{{ url_for('logout') }}">Abmelden</a></div>
+      </div>
     </div>
 
     <!-- Woche wählen (GET) -->
@@ -69,7 +74,7 @@
       <div class="hint">Hinweis: Ungültige Wochenzahlen werden automatisch auf den gültigen Bereich korrigiert.</div>
     </form>
 
-    <!-- Erfassung + Download (POST) -->
+    <!-- Erfassung + Download/Speichern (POST) -->
     <form method="post" action="/download" class="card">
       <input type="hidden" name="year" value="{{year}}" />
       <input type="hidden" name="week" value="{{week}}" />
@@ -90,9 +95,9 @@
           </div>
           <label for="loc_{{ d.isoformat() }}">Standort</label>
           <select id="loc_{{ d.isoformat() }}" name="loc_{{ d.isoformat() }}">
-            <option value="" {% if selections.get('loc_' + d.isoformat(), '') == '' %}selected{% endif %}>– wählen –</option>
+            <option value="" {% if selections.get(d.isoformat(), '') == '' %}selected{% endif %}>– wählen –</option>
             {% for loc in locations %}
-            <option value="{{loc}}" {% if selections.get('loc_' + d.isoformat(), '') == loc %}selected{% endif %}>{{loc}}</option>
+            <option value="{{loc}}" {% if selections.get(d.isoformat(), '') == loc %}selected{% endif %}>{{loc}}</option>
             {% endfor %}
           </select>
         </div>
@@ -101,7 +106,12 @@
 
       <div class="footer">
         <div class="muted">Woche {{'%02d' % week}} von {{year}} – wählen Sie pro Tag den Standort aus.</div>
-        <button class="btn btn-accent" type="submit">Als Excel herunterladen</button>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <!-- Speichern ruft /save (POST) auf und bleibt in der Ansicht -->
+          <button class="btn btn-ghost" formaction="/save" formmethod="post" type="submit">Speichern</button>
+          <!-- Download bleibt Standard-Action dieses Formulars (/download) -->
+          <button class="btn btn-accent" type="submit">Als Excel herunterladen</button>
+        </div>
       </div>
     </form>
   </div>
