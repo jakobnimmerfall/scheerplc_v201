@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login – Arbeitsorte</title>
+  <style>
+    :root { --bg:#0f172a; --card:#111827; --muted:#9ca3af; --text:#e5e7eb; --accent:#22c55e; --border:#374151; }
+    body{ margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background: linear-gradient(180deg, #0b1022, #0f172a); color: var(--text);}
+    .container{ max-width: 420px; margin: 80px auto; padding: 0 16px;}
+    .card{ background: linear-gradient(180deg, #0e152b, #0d1326); border:1px solid var(--border); border-radius:16px; padding:20px; box-shadow: 0 8px 30px rgba(0,0,0,.35); }
+    label{ font-size:14px; color: var(--muted); display:block; margin-bottom:6px;}
+    input{ width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:#0b1328; color:var(--text); outline:none; }
+    .btn{ width:100%; margin-top:12px; cursor:pointer; border:none; border-radius:10px; padding:12px 14px; font-weight:600; background: var(--accent); color:#052e16; }
+    .title{ font-size: 22px; font-weight:700; margin-bottom:14px; }
+    .muted{ color:var(--muted); font-size:13px; margin-top:10px; text-align:center;}
+    .flash{ color:#fca5a5; font-size:14px; margin-bottom:8px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="title">Anmeldung</div>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="flash">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      <form method="post">
+        <label for="username">E-Mail oder Benutzername</label>
+        <input id="username" name="username" type="text" placeholder="z. B. jakob.nimmerfall" required>
+        <div style="height:8px;"></div>
+        <label for="password">Passwort</label>
+        <input id="password" name="password" type="password" required>
+        <button class="btn" type="submit">Einloggen</button>
+      </form>
+      <div class="muted">Pilot: Jakob Nimmerfall</div>
+    </div>
+  </div>
+</body>
+</html>
